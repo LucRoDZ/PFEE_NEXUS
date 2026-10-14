@@ -1,0 +1,69 @@
+{
+  "scene1": {
+    "upload_timings_ms": {
+      "deidentify_ms": 2.41,
+      "encrypt_ms": 1.3,
+      "wrap_ms": 22.13,
+      "upload_ms": 42.86
+    },
+    "checks": {
+      "burned_in_quarantined": true,
+      "storage_ciphertext_only": true,
+      "hdg_key_request_denied": true,
+      "no_keys_at_hdg": true
+    },
+    "objects_read_by_admin": 3,
+    "entropy_bits_per_byte": 7.9997,
+    "markers_found": [],
+    "hdg_key_request_answer": "grant not found (404)"
+  },
+  "scene2": {
+    "authorized_key_release_ms": 11.83,
+    "checks": {
+      "pseudonymized_for_researcher": true,
+      "allowed_before": true,
+      "denied_after": true,
+      "under_5s": true,
+      "crypto_shredding": true
+    },
+    "revocation_round_trip_ms": 93.57,
+    "click_to_first_denial_ms": 188.4,
+    "allowed_before_revocation": 6,
+    "requests_after_revocation": 10,
+    "allowed_after_revocation": 0,
+    "erasure_answer": "patient key destroyed (crypto-shredded)"
+  },
+  "scene5": {
+    "images_processed": 3,
+    "identity_in_inputs": [],
+    "identity_in_output": [],
+    "fields_searched": [
+      "name",
+      "patient ID",
+      "birth date",
+      "hospital",
+      "referring physician",
+      "accession number"
+    ],
+    "checks": {
+      "no_identity_in_ai_inputs": true,
+      "no_identity_in_ai_output": true,
+      "revoked_excluded_from_ai": true
+    },
+    "next_run_used": 0,
+    "next_run_excluded": 3
+  },
+  "scene3": {
+    "patient_visible_events": 30,
+    "checks": {
+      "intact_before": true,
+      "edit_detected": true,
+      "rewrite_detected": true
+    },
+    "detect_edit_ms": 17.4,
+    "edited_entry": 5,
+    "edit_detected_at": 5,
+    "rewrite_passes_hdg_check": true,
+    "rewrite_first_anchor_mismatch": 10
+  }
+}

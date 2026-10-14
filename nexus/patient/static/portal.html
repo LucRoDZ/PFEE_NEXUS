@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXUS patient portal</title>
+<style>
+  :root { --ink:#1d2433; --muted:#5b6475; --line:#d9dee7; --bg:#f6f7f9; --card:#fff; --ok:#1f7a4d; --bad:#b42318; --accent:#2f5bd3; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; color:var(--ink); background:var(--bg); }
+  header { padding:20px 24px; background:var(--card); border-bottom:1px solid var(--line); }
+  header h1 { margin:0; font-size:20px; }
+  header p { margin:4px 0 0; color:var(--muted); font-size:13px; }
+  main { max-width:1000px; margin:0 auto; padding:24px; display:grid; gap:20px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px; }
+  h2 { margin:0 0 12px; font-size:16px; }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  .pill { display:inline-block; padding:1px 8px; border-radius:999px; font-size:12px; font-weight:600; }
+  .active, .allowed, .recorded, .stored { background:#e3f4ea; color:var(--ok); }
+  .revoked, .denied, .destroyed, .expired { background:#fde8e6; color:var(--bad); }
+  .served-ciphertext { background:#eef1f6; color:var(--muted); }
+  button { font:inherit; border:1px solid var(--line); background:#fff; border-radius:7px; padding:5px 12px; cursor:pointer; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.danger { color:var(--bad); border-color:#f3b8b2; }
+  form { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  input, select { font:inherit; padding:5px 8px; border:1px solid var(--line); border-radius:7px; }
+  .muted { color:var(--muted); font-size:12.5px; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>My health data — NEXUS</h1>
+  <p>Signed on this device: your signing key never leaves it. Patient reference <span id="ref" class="mono"></span></p>
+</header>
+<main>
+  <section>
+    <h2>Who can use my data</h2>
+    <form id="grant-form">
+      <input id="grantee" placeholder="Grantee (e.g. dr-alice-research)" required>
+      <select id="purpose">
+        <option value="research">research</option>
+        <option value="ai-training">ai-training</option>
+        <option value="second-opinion">second-opinion</option>
+      </select>
+      <input id="days" type="number" value="30" min="1" style="width:80px"> days
+      <button class="primary" type="submit">Grant access</button>
+    </form>
+    <table>
+      <thead><tr><th>Grantee</th><th>Purpose</th><th>Status</th><th>Expires</th><th></th></tr></thead>
+      <tbody id="grants"></tbody>
+    </table>
+  </section>
+  <section>
+    <h2>Who accessed my data</h2>
+    <p class="muted">Every request, allowed or refused, as recorded in the tamper-evident audit chain (EHDS article 9).</p>
+    <table>
+      <thead><tr><th>#</th><th>When (UTC)</th><th>Who</th><th>What</th><th>Decision</th><th>Detail</th></tr></thead>
+      <tbody id="log"></tbody>
+    </table>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+async function api(path, options) {
+  const r = await fetch(path, options);
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function refresh() {
+  const me = await api("/api/me");
+  $("ref").textContent = me.patient_ref;
+  const grants = await api("/api/grants");
+  $("grants").innerHTML = grants.map(g => `
+    <tr>
+      <td>${esc(g.grantee)}</td><td>${esc(g.purpose)}</td>
+      <td><span class="pill ${esc(g.status)}">${esc(g.status)}</span></td>
+      <td class="muted">${esc(g.expires_at.slice(0,10))}</td>
+      <td>${g.status === "active" ? `<button class="danger" data-revoke="${esc(g.grant_id)}">Revoke</button>` : ""}</td>
+    </tr>`).join("") || `<tr><td colspan="5" class="muted">No grants yet.</td></tr>`;
+  const log = await api("/api/access-log");
+  $("log").innerHTML = log.map(e => `
+    <tr>
+      <td class="muted">${e.seq}</td><td class="muted">${esc(e.ts.slice(11,23))}</td>
+      <td>${esc(e.actor)}</td><td class="mono">${esc(e.action)}</td>
+      <td><span class="pill ${esc(e.decision)}">${esc(e.decision)}</span></td>
+      <td class="muted">${esc(e.detail)}</td>
+    </tr>`).join("") || `<tr><td colspan="6" class="muted">No access yet.</td></tr>`;
+}
+
+$("grants").addEventListener("click", async (ev) => {
+  const id = ev.target.dataset.revoke;
+  if (!id) return;
+  ev.target.disabled = true;
+  await api(`/api/grants/${id}/revoke`, { method: "POST" });
+  refresh();
+});
+
+$("grant-form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  await api("/api/grants", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ grantee: $("grantee").value, purpose: $("purpose").value, days: Number($("days").value) }) });
+  refresh();
+});
+
+refresh();
+setInterval(refresh, 2000);
+</script>
+</body>
+</html>

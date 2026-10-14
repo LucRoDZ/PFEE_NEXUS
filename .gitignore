@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.secret
+
+# POC runtime state and generated artifacts
+var/
+*.sqlite
+*.sqlite-*
+*.log
+
+# Build and packaging artifacts
+build/
+dist/
+*.egg-info/
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

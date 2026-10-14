@@ -1,0 +1,13 @@
+{
+  "mode": "read",
+  "concurrency": 20,
+  "requests": 5558,
+  "errors": 0,
+  "errors_by_cause": {},
+  "seconds": 30.08,
+  "throughput_rps": 184.8,
+  "p50_ms": 100.4,
+  "p95_ms": 161.54,
+  "p99_ms": 174.77,
+  "mean_ms": 107.99
+}

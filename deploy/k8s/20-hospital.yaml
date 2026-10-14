@@ -1,0 +1,229 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hospital-data
+  namespace: hospital
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keybroker
+  namespace: hospital
+  labels:
+    app: keybroker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keybroker
+  template:
+    metadata:
+      labels:
+        app: keybroker
+    spec:
+      nodeSelector:
+        nexus/site: hospital
+      automountServiceAccountToken: false
+      containers:
+      - name: keybroker
+        image: nexus-poc:0.1
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - -m
+        - uvicorn
+        - nexus.hospital.keybroker:app
+        - --host
+        - 0.0.0.0
+        - --port
+        - '8000'
+        env:
+        - name: NEXUS_AUDIT_URL
+          value: http://audit.hdg.svc:8000
+        - name: NEXUS_CONSENT_URL
+          value: http://consent.hdg.svc:8000
+        - name: NEXUS_DATA_URL
+          value: http://data-api.hdg.svc:8000
+        - name: NEXUS_BROKER_URL
+          value: http://keybroker.hospital.svc:8000
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: '1'
+            memory: 512Mi
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: data
+          mountPath: /data
+        ports:
+        - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          periodSeconds: 5
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: data
+        persistentVolumeClaim:
+          claimName: hospital-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keybroker
+  namespace: hospital
+spec:
+  selector:
+    app: keybroker
+  ports:
+  - port: 8000
+    targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anchor
+  namespace: hospital
+  labels:
+    app: anchor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: anchor
+  template:
+    metadata:
+      labels:
+        app: anchor
+    spec:
+      nodeSelector:
+        nexus/site: hospital
+      automountServiceAccountToken: false
+      containers:
+      - name: anchor
+        image: nexus-poc:0.1
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - -m
+        - nexus.hospital.anchor
+        - run
+        - --interval
+        - '600'
+        env:
+        - name: NEXUS_AUDIT_URL
+          value: http://audit.hdg.svc:8000
+        - name: NEXUS_CONSENT_URL
+          value: http://consent.hdg.svc:8000
+        - name: NEXUS_DATA_URL
+          value: http://data-api.hdg.svc:8000
+        - name: NEXUS_BROKER_URL
+          value: http://keybroker.hospital.svc:8000
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: '1'
+            memory: 512Mi
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: data
+        persistentVolumeClaim:
+          claimName: hospital-data
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: hospital
+  labels:
+    app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      nodeSelector:
+        nexus/site: hospital
+      automountServiceAccountToken: false
+      containers:
+      - name: gateway
+        image: nexus-poc:0.1
+        imagePullPolicy: IfNotPresent
+        command:
+        - sleep
+        - infinity
+        env:
+        - name: NEXUS_AUDIT_URL
+          value: http://audit.hdg.svc:8000
+        - name: NEXUS_CONSENT_URL
+          value: http://consent.hdg.svc:8000
+        - name: NEXUS_DATA_URL
+          value: http://data-api.hdg.svc:8000
+        - name: NEXUS_BROKER_URL
+          value: http://keybroker.hospital.svc:8000
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: '1'
+            memory: 512Mi
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: data
+        persistentVolumeClaim:
+          claimName: hospital-data

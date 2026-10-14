@@ -1,0 +1,49 @@
+{
+  "detect_s": 1.86,
+  "contain_s": 1.86,
+  "attacker_blocked_s": 2.0,
+  "analysis_ms": 173.4,
+  "attacker": "dr-carol-clinician",
+  "attempts": 13,
+  "answers": {
+    "grant revoked (notice received directly from the patient)": 1,
+    "unknown patient": 11,
+    "account disabled": 1
+  },
+  "pod_token_answers": {
+    "grant revoked (notice received directly from the patient)": 3
+  },
+  "raw_storage_entropy": 7.9997,
+  "keys_obtained_by_attacker": 0,
+  "analysis": {
+    "events": 13,
+    "by_action_and_decision": {
+      "key.unwrap denied": 12,
+      "object.read served-ciphertext": 1
+    },
+    "patients_targeted": 12,
+    "keys_released": 0,
+    "first_event": "2026-10-13T04:52:02.522+00:00",
+    "last_event": "2026-10-13T04:52:04.315+00:00"
+  },
+  "alerts": [
+    {
+      "actor": "dr-alice-research",
+      "refusals_in_window": 506,
+      "window_s": 60,
+      "first_refusal_at": 1791867116.626,
+      "detected_at": 1791867121.5634472,
+      "action": "account disabled at the identity provider",
+      "contained_at": 1791867121.5639448
+    },
+    {
+      "actor": "dr-carol-clinician",
+      "refusals_in_window": 11,
+      "window_s": 60,
+      "first_refusal_at": 1791867122.614,
+      "detected_at": 1791867124.347673,
+      "action": "account disabled at the identity provider",
+      "contained_at": 1791867124.3480635
+    }
+  ]
+}

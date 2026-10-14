@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hdg
+  labels:
+    nexus/zone: hdg
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hospital
+  labels:
+    nexus/zone: hospital
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: garage
+  labels:
+    nexus/zone: hdg

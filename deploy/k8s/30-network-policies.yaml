@@ -1,0 +1,335 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: hdg
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: hospital
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: audit
+  namespace: hdg
+spec:
+  podSelector:
+    matchLabels:
+      app: audit
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hdg
+      podSelector:
+        matchLabels:
+          app: consent
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hdg
+      podSelector:
+        matchLabels:
+          app: data-api
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hospital
+      podSelector:
+        matchLabels:
+          app: keybroker
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hospital
+      podSelector:
+        matchLabels:
+          app: anchor
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hospital
+      podSelector:
+        matchLabels:
+          app: gateway
+    ports:
+    - port: 8000
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: consent
+  namespace: hdg
+spec:
+  podSelector:
+    matchLabels:
+      app: consent
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hospital
+      podSelector:
+        matchLabels:
+          app: keybroker
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+    ports:
+    - port: 8000
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hdg
+      podSelector:
+        matchLabels:
+          app: audit
+    ports:
+    - port: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: data-api
+  namespace: hdg
+spec:
+  podSelector:
+    matchLabels:
+      app: data-api
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hospital
+      podSelector:
+        matchLabels:
+          app: gateway
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+    ports:
+    - port: 8000
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hdg
+      podSelector:
+        matchLabels:
+          app: audit
+    ports:
+    - port: 8000
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: garage
+    ports:
+    - port: 3900
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keybroker
+  namespace: hospital
+spec:
+  podSelector:
+    matchLabels:
+      app: keybroker
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hospital
+      podSelector:
+        matchLabels:
+          app: gateway
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+    ports:
+    - port: 8000
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hdg
+      podSelector:
+        matchLabels:
+          app: consent
+    ports:
+    - port: 8000
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hdg
+      podSelector:
+        matchLabels:
+          app: audit
+    ports:
+    - port: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: anchor
+  namespace: hospital
+spec:
+  podSelector:
+    matchLabels:
+      app: anchor
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hdg
+      podSelector:
+        matchLabels:
+          app: audit
+    ports:
+    - port: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: gateway
+  namespace: hospital
+spec:
+  podSelector:
+    matchLabels:
+      app: gateway
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hospital
+      podSelector:
+        matchLabels:
+          app: keybroker
+    ports:
+    - port: 8000
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hdg
+      podSelector:
+        matchLabels:
+          app: data-api
+    ports:
+    - port: 8000
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: hdg
+      podSelector:
+        matchLabels:
+          app: audit
+    ports:
+    - port: 8000

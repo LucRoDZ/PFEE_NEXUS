@@ -1,0 +1,67 @@
+# Two networks stand for the two sites: the hospital and HDG's private cloud.
+# HDG services never hold a key; the key broker and the anchors live on the hospital side.
+x-nexus: &nexus
+  image: nexus-poc:0.1
+  restart: unless-stopped
+  environment: &env
+    NEXUS_AUDIT_URL: http://audit:8000
+    NEXUS_CONSENT_URL: http://consent:8000
+    NEXUS_DATA_URL: http://data-api:8000
+    NEXUS_BROKER_URL: http://keybroker:8000
+    NEXUS_S3_ENDPOINT: http://garage:3900
+    NEXUS_S3_ACCESS_KEY: ${NEXUS_S3_ACCESS_KEY:-GK0123456789abcdef01234567}
+    NEXUS_S3_SECRET_KEY: ${NEXUS_S3_SECRET_KEY:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
+
+services:
+  garage:
+    image: dxflrs/garage:v2.1.0
+    volumes: [garage-meta:/var/lib/garage/meta, garage-data:/var/lib/garage/data, ./garage.toml:/etc/garage.toml:ro]
+    networks: [hdg]
+
+  audit:
+    <<: *nexus
+    command: [python, -m, uvicorn, nexus.hdg.audit:app, --host, 0.0.0.0, --port, "8000"]
+    volumes: [hdg-data:/data]
+    networks: [hdg]
+
+  consent:
+    <<: *nexus
+    command: [python, -m, uvicorn, nexus.hdg.consent:app, --host, 0.0.0.0, --port, "8000"]
+    volumes: [hdg-data:/data]
+    networks: [hdg]
+    ports: ["8102:8000"]
+
+  data-api:
+    <<: *nexus
+    command: [python, -m, uvicorn, nexus.hdg.data_api:app, --host, 0.0.0.0, --port, "8000"]
+    networks: [hdg]
+    ports: ["8103:8000"]
+
+  keybroker:
+    <<: *nexus
+    command: [python, -m, uvicorn, nexus.hospital.keybroker:app, --host, 0.0.0.0, --port, "8000"]
+    volumes: [hospital-data:/data]
+    networks: [hospital, hdg]
+    ports: ["8201:8000"]
+
+  anchor:
+    <<: *nexus
+    command: [python, -m, nexus.hospital.anchor, run, --interval, "10"]
+    volumes: [hospital-data:/data]
+    networks: [hospital, hdg]
+
+  gateway:
+    <<: *nexus
+    command: [sleep, infinity]   # use: docker compose exec gateway python -m nexus.hospital.gateway upload FILE
+    volumes: [hospital-data:/data]
+    networks: [hospital, hdg]
+
+networks:
+  hdg: {}
+  hospital: {}
+
+volumes:
+  garage-meta: {}
+  garage-data: {}
+  hdg-data: {}
+  hospital-data: {}

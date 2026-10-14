@@ -1,0 +1,18 @@
+{
+  "mode": "full",
+  "concurrency": 20,
+  "requests": 3654,
+  "errors": 0,
+  "errors_by_cause": {},
+  "seconds": 30.11,
+  "throughput_rps": 121.4,
+  "p50_ms": 159.59,
+  "p95_ms": 182.54,
+  "p99_ms": 227.58,
+  "mean_ms": 164.4,
+  "outcomes": {
+    "allowed": 3654
+  },
+  "key_decision_p50_ms": 71.41,
+  "key_decision_p95_ms": 79.84
+}

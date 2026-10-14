@@ -1,0 +1,23 @@
+{
+  "mode": "revoke",
+  "concurrency": 20,
+  "requests": 3783,
+  "errors": 0,
+  "errors_by_cause": {},
+  "seconds": 30.1,
+  "throughput_rps": 125.7,
+  "p50_ms": 157.25,
+  "p95_ms": 174.01,
+  "p99_ms": 200.49,
+  "mean_ms": 158.73,
+  "revocation_round_trip_ms": 177.7,
+  "first_revocation_denial_after_click_ms": 140.5,
+  "requests_started_after_revocation": 1896,
+  "allowed_after_revocation": 0,
+  "outcomes_before_revocation": {
+    "allowed": 1846
+  },
+  "outcomes_after_revocation": {
+    "denied: grant revoked (notice received directly from the patient)": 1896
+  }
+}

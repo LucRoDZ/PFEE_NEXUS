@@ -1,0 +1,19 @@
+# Single-node Garage for docker compose. On k3s use replication_factor = 3 (one per node).
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "sqlite"
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "garage:3901"
+# change both secrets before any real use
+rpc_secret = "4f9c0d5e3b1a7c2e8d6f0a9b3c5e7d1f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d"
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+root_domain = ".s3.garage.localhost"
+
+[admin]
+api_bind_addr = "[::]:3903"
+admin_token = "change-me-admin-token"

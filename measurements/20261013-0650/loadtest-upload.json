@@ -1,0 +1,14 @@
+{
+  "mode": "upload",
+  "concurrency": 5,
+  "requests": 50,
+  "errors": 0,
+  "errors_by_cause": null,
+  "seconds": 2.11,
+  "throughput_rps": 23.7,
+  "p50_ms": 203.81,
+  "p95_ms": 294.61,
+  "p99_ms": 331.99,
+  "mean_ms": 206.12,
+  "image_bytes": 525100
+}

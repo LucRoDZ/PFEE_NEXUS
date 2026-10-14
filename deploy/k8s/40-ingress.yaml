@@ -1,0 +1,65 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: consent
+  namespace: hdg
+spec:
+  tls:
+  - hosts:
+    - consent.nexus.local
+    secretName: nexus-tls
+  rules:
+  - host: consent.nexus.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: consent
+            port:
+              number: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: data-api
+  namespace: hdg
+spec:
+  tls:
+  - hosts:
+    - data.nexus.local
+    secretName: nexus-tls
+  rules:
+  - host: data.nexus.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: data-api
+            port:
+              number: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: keybroker
+  namespace: hospital
+spec:
+  tls:
+  - hosts:
+    - keys.hospital.local
+    secretName: nexus-tls
+  rules:
+  - host: keys.hospital.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: keybroker
+            port:
+              number: 8000
